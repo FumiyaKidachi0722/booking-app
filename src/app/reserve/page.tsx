@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import type { z } from "zod";
+import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -13,35 +13,35 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { schemas } from "@/shared/types/generated/openapi.zod";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { schemas } from '@/shared/types/generated/openapi.zod';
 
 const formSchema = schemas.CreateReservationRequest;
 
 export default function ReservePage() {
-  const [result, setResult] = useState<string>("");
+  const [result, setResult] = useState<string>('');
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      tenantId: "",
-      locationId: "",
-      resourceId: "",
-      serviceId: "",
-      customerId: "",
-      startAtUTC: "",
+      tenantId: '',
+      locationId: '',
+      resourceId: '',
+      serviceId: '',
+      customerId: '',
+      startAtUTC: '',
       durationMin: 60,
       people: 1,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setResult("");
-    const res = await fetch("/api/reservations", {
-      method: "POST",
+    setResult('');
+    const res = await fetch('/api/reservations', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Idempotency-Key": crypto.randomUUID(),
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
       },
       body: JSON.stringify(values),
     });
