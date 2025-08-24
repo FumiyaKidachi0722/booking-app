@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { CreateReservationUseCase } from '@/server/application/reservations/createReservation';
+import { ListReservationsUseCase } from '@/server/application/reservations/listReservations';
 import { InMemoryReservationRepository } from '@/server/infrastructure/inMemoryReservationRepository';
 import { schemas } from '@/shared/types/generated/openapi.zod';
 
@@ -36,4 +37,11 @@ export async function POST(req: NextRequest) {
         : (error as Error).message;
     return NextResponse.json({ code: 'bad_request', message }, { status: 400 });
   }
+}
+
+export async function GET() {
+  const repo = new InMemoryReservationRepository();
+  const useCase = new ListReservationsUseCase(repo);
+  const reservations = await useCase.execute();
+  return NextResponse.json(reservations, { status: 200 });
 }

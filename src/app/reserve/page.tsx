@@ -130,9 +130,13 @@ export default function ReservePage() {
             name="startAtUTC"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>開始日時 (UTC)</FormLabel>
+                <FormLabel>開始日時</FormLabel>
                 <FormControl>
-                  <Input placeholder="2025-08-24T10:00:00.000Z" {...field} />
+                  <Input
+                    type="datetime-local"
+                    value={field.value ? field.value.slice(0, 16) : ''}
+                    onChange={(e) => field.onChange(new Date(e.target.value).toISOString())}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

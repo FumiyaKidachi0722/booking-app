@@ -5,4 +5,5 @@ export type Reservation = components['schemas']['CreateReservationResponse'];
 
 export interface ReservationRepository {
   create(cmd: CreateReservationCommand, idempotencyKey: string): Promise<Reservation>;
+  list(): Promise<Reservation[]>;
 }
