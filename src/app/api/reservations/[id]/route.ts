@@ -12,10 +12,11 @@ const updateSchema = z.object({
   cancelFeePreview: z.number().int().nonnegative().optional(),
 });
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const repo = new InMemoryReservationRepository();
   const useCase = new GetReservationUseCase(repo);
-  const reservation = await useCase.execute(params.id);
+  const reservation = await useCase.execute(id);
   if (!reservation) {
     return NextResponse.json(
       { code: 'not_found', message: 'Reservation not found' },
@@ -25,13 +26,14 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json(reservation, { status: 200 });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const json = await req.json();
     const command = updateSchema.parse(json);
     const repo = new InMemoryReservationRepository();
     const useCase = new UpdateReservationUseCase(repo);
-    const updated = await useCase.execute(params.id, command);
+    const { id } = await params;
+    const updated = await useCase.execute(id, command);
     if (!updated) {
       return NextResponse.json(
         { code: 'not_found', message: 'Reservation not found' },
