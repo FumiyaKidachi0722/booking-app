@@ -1,9 +1,23 @@
 import type { components } from '@/shared/types/generated/openapi.types';
 
 export type CreateReservationCommand = components['schemas']['CreateReservationRequest'];
-export type Reservation = components['schemas']['CreateReservationResponse'];
+
+// Reservation entity persisted in the repository. In addition to the fields
+// returned from the API, we store the start time so that the UI can display and
+// group reservations by date.
+export interface Reservation {
+  reservationId: string;
+  amount: number;
+  cancelFeePreview: number;
+  startAtUTC: string;
+}
 
 export interface ReservationRepository {
   create(cmd: CreateReservationCommand, idempotencyKey: string): Promise<Reservation>;
   list(): Promise<Reservation[]>;
+  get(id: string): Promise<Reservation | undefined>;
+  update(
+    id: string,
+    data: Partial<Pick<Reservation, 'startAtUTC' | 'amount' | 'cancelFeePreview'>>,
+  ): Promise<Reservation | undefined>;
 }
