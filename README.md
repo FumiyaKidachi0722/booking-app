@@ -19,7 +19,9 @@
 
 src/
 app/                 # Next.js App Router
-reserve/page.tsx
+reserve/
+  page.tsx
+  create/page.tsx
 api/
 reservations/route.ts
 config/preview/route.ts
@@ -132,7 +134,8 @@ pnpm install # または npm/yarn
 ```bash
 pnpm dev
 # http://localhost:3000/ (ホーム)
-# http://localhost:3000/reserve (予約フォーム)
+# http://localhost:3000/reserve (予約対象選択)
+# http://localhost:3000/reserve/create (予約フォーム)
 # http://localhost:3000/reservations (予約一覧)
 ```
 
@@ -251,7 +254,7 @@ GET /api/reservations
 
 - Unit: UseCase（Port モック）
 - Integration: Firestore Emulator（Tx 競合/冪等）
-- E2E: Playwright（/reserve → 予約作成 → トースト）
+- E2E: Playwright（/reserve で対象選択 → 予約作成 → トースト）
 
 ---
 
