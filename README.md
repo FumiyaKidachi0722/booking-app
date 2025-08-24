@@ -130,7 +130,9 @@ pnpm install # または npm/yarn
 
 ```bash
 pnpm dev
-# http://localhost:3000/reserve へアクセス
+# http://localhost:3000/ (ホーム)
+# http://localhost:3000/reserve (予約フォーム)
+# http://localhost:3000/reservations (予約一覧)
 ```
 
 ---
@@ -164,6 +166,28 @@ pnpm dev
 **409**: スロット競合
 **400**: 入力不正
 
+### GET `/api/reservations`
+
+既存の予約を一覧で取得します（フィルタ・ページングは未実装）。
+
+**例**:
+
+```
+GET /api/reservations
+```
+
+**200**:
+
+```json
+[
+  {
+    "id": "xxxx",
+    "startAtUTC": "2025-08-24T10:00:00.000Z",
+    "durationMin": 60
+  }
+]
+```
+
 ---
 
 ## 設計の要点
@@ -172,6 +196,44 @@ pnpm dev
 - **トランザクション安全性**：スロット doc に `reservedBy` を書き込み、存在時は競合
 - **Config-as-Data**：公開版のみ参照し、予約確定時はバージョンタグを**スナップショット**に保存
 - **拡張**：キャンセル/延長 API・Schema Registry UI は同構成で追加が容易
+
+## Roadmap
+
+詳細な進捗は [docs/todo-list.md](docs/todo-list.md) を参照してください。
+
+### API
+
+- [x] `POST /api/reservations` – 予約作成
+- [~] `GET /api/reservations` – 予約一覧（フィルタ・ページング未実装）
+- [ ] `GET /api/reservations/{id}` – 予約詳細
+- [ ] `POST /api/reservations/{id}/extend` – 予約延長
+- [ ] `POST /api/reservations/{id}/cancel` – 予約キャンセル
+- [ ] `GET /api/availability` – 空き状況検索
+- [ ] `GET /api/config/preview` – 公開設定プレビュー
+- [ ] `POST /api/payments/webhook` – 決済イベント受信
+- [ ] `POST /api/auth/login` – ログイン
+- [ ] `POST /api/auth/logout` – ログアウト
+
+### UI
+
+- [x] ホーム画面（予約フォーム・一覧への導線）
+- [x] 予約フォーム（カレンダー入力対応）
+- [x] 予約一覧画面（簡易版）
+- [ ] 予約確認画面
+- [ ] 予約詳細画面
+- [ ] キャンセルフロー
+- [ ] 延長フロー
+- [ ] 空き検索画面
+- [ ] 設定プレビュー画面
+- [ ] ログイン画面
+
+### Infrastructure / Others
+
+- [ ] Firestore 永続化（現状インメモリ）
+- [ ] トランザクションによる二重予約防止
+- [ ] Config-as-Data（pricing/cancellation）
+- [ ] Idempotency-Key ミドルウェア
+- [ ] 認証・認可
 
 ---
 
