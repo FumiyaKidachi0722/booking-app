@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { HEADER_HEIGHT, PAGE_HEADER_HEIGHT } from '@/lib/constants';
+
 interface PageHeaderProps {
   title?: string;
   imageUrl?: string;
@@ -8,8 +10,12 @@ interface PageHeaderProps {
 export function PageHeader({ title, imageUrl }: PageHeaderProps) {
   return (
     <div
-      className="relative flex h-40 w-full items-center justify-center bg-gray-200 bg-cover bg-center"
-      style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined}
+      className="relative flex w-full items-center justify-center bg-gray-200 bg-cover bg-center"
+      style={{
+        backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
+        height: PAGE_HEADER_HEIGHT,
+        marginTop: -HEADER_HEIGHT,
+      }}
     >
       {title && <h1 className="text-3xl font-bold text-white drop-shadow">{title}</h1>}
     </div>
