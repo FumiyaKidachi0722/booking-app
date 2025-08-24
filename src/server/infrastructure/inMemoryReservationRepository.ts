@@ -12,26 +12,43 @@ const reservations: Reservation[] = [
     reservationId: 'dummy-1',
     amount: 5000,
     cancelFeePreview: 500,
+    startAtUTC: new Date().toISOString(),
   },
   {
     reservationId: 'dummy-2',
     amount: 8000,
     cancelFeePreview: 0,
+    startAtUTC: new Date(Date.now() + 86400000).toISOString(),
   },
 ];
 
 export class InMemoryReservationRepository implements ReservationRepository {
-  async create(_command: CreateReservationCommand, _idempotencyKey: string): Promise<Reservation> {
-    const reservation = {
+  async create(command: CreateReservationCommand, _idempotencyKey: string): Promise<Reservation> {
+    const reservation: Reservation = {
       reservationId: randomUUID(),
       amount: 0,
       cancelFeePreview: 0,
-    } satisfies Reservation;
+      startAtUTC: command.startAtUTC,
+    };
     reservations.push(reservation);
     return reservation;
   }
 
   async list(): Promise<Reservation[]> {
     return reservations;
+  }
+
+  async get(id: string): Promise<Reservation | undefined> {
+    return reservations.find((r) => r.reservationId === id);
+  }
+
+  async update(
+    id: string,
+    data: Partial<Pick<Reservation, 'startAtUTC' | 'amount' | 'cancelFeePreview'>>,
+  ): Promise<Reservation | undefined> {
+    const r = await this.get(id);
+    if (!r) return undefined;
+    Object.assign(r, data);
+    return r;
   }
 }

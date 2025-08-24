@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import { SiteHeader } from '@/components/site-header';
+import { HEADER_HEIGHT } from '@/lib/constants';
 
 import './globals.css';
 
@@ -29,7 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SiteHeader />
-        {children}
+        <div style={{ paddingTop: HEADER_HEIGHT }}>{children}</div>
       </body>
     </html>
   );
