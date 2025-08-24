@@ -16,9 +16,9 @@ interface ReservationCardProps {
 
 export function ReservationCard({ reservationId, amount, cancelFeePreview }: ReservationCardProps) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
-        <div>
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="space-y-1">
           <CardTitle className="text-base">予約ID: {reservationId}</CardTitle>
           <CardDescription>金額: ¥{amount.toLocaleString()}</CardDescription>
         </div>
