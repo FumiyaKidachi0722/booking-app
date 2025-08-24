@@ -1,0 +1,600 @@
+openapi: 3.1.0
+info:
+  title: Universal Booking API
+  version: 1.1.0
+  description: |
+    汎用予約システム（Next.js App Router + Firebase Firestore）のAPI仕様。
+    - 二重予約防止: スロット離散化(既定15分)×トランザクション
+    - Config-as-Data: pricing / cancellation は階層＋バージョン管理（公開版を適用）
+    - 冪等性: ミューテーション系で `Idempotency-Key` ヘッダ必須（POST/extend/cancel）
+servers:
+  - url: /
+    description: Same-origin (Next.js Route Handlers)
+
+tags:
+  - name: Reservations
+  - name: Availability
+  - name: Config
+  - name: Payments
+
+paths:
+  /api/reservations:
+    get:
+      tags: [Reservations]
+      summary: 予約一覧（検索・ページング）
+      operationId: listReservations
+      parameters:
+        - $ref: "#/components/parameters/pageSize"
+        - $ref: "#/components/parameters/pageToken"
+        - in: query
+          name: tenantId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: locationId
+          schema: { type: string }
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/ReservationStatus"
+        - in: query
+          name: fromUTC
+          description: 期間フィルタ（開始：ISO、UTC）
+          schema: { type: string, format: date-time }
+        - in: query
+          name: toUTC
+          description: 期間フィルタ（終了：ISO、UTC）
+          schema: { type: string, format: date-time }
+        - in: query
+          name: customerId
+          schema: { type: string }
+      responses:
+        "200":
+          description: 一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationListResponse"
+    post:
+      tags: [Reservations]
+      summary: 予約を作成（見積→スロット確保→pending作成）
+      operationId: createReservation
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservationRequest"
+      responses:
+        "200":
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateReservationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/reservations/{id}:
+    get:
+      tags: [Reservations]
+      summary: 予約の取得
+      operationId: getReservation
+      parameters:
+        - $ref: "#/components/parameters/reservationId"
+        - in: query
+          name: tenantId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: 予約
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/reservations/{id}/extend:
+    post:
+      tags: [Reservations]
+      summary: 予約延長（追加スロット確保）
+      operationId: extendReservation
+      parameters:
+        - $ref: "#/components/parameters/reservationId"
+        - in: query
+          name: tenantId
+          required: true
+          schema: { type: string }
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtendReservationRequest"
+      responses:
+        "200":
+          description: 延長成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtendReservationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/reservations/{id}/cancel:
+    post:
+      tags: [Reservations]
+      summary: 予約キャンセル（キャンセル料算定→返金→スロット解放）
+      operationId: cancelReservation
+      parameters:
+        - $ref: "#/components/parameters/reservationId"
+        - in: query
+          name: tenantId
+          required: true
+          schema: { type: string }
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelReservationRequest"
+      responses:
+        "200":
+          description: キャンセル成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancelReservationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: 決済状態などによりキャンセル不能
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/availability:
+    get:
+      tags: [Availability]
+      summary: 可用スロット検索（15分グリッド）
+      operationId: searchAvailability
+      parameters:
+        - in: query
+          name: tenantId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: resourceId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: dateUTC
+          required: true
+          description: 対象日（UTC）YYYY-MM-DD
+          schema: { type: string, pattern: '^\\d{4}-\\d{2}-\\d{2}$' }
+        - in: query
+          name: unitMin
+          schema: { type: integer, default: 15, minimum: 5, maximum: 60 }
+      responses:
+        "200":
+          description: スロット一覧
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/config/preview:
+    get:
+      tags: [Config]
+      summary: 公開中Configの解決結果をプレビュー
+      operationId: previewConfig
+      parameters:
+        - in: query
+          name: category
+          required: true
+          schema:
+            type: string
+            enum: [pricing, cancellation]
+        - in: query
+          name: tenantId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: locationId
+          schema: { type: string }
+        - in: query
+          name: productId
+          schema: { type: string }
+      responses:
+        "200":
+          description: 解決されたConfig
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ResolvedPricingConfig"
+                  - $ref: "#/components/schemas/ResolvedCancellationPolicy"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/payments/webhook:
+    post:
+      tags: [Payments]
+      summary: 決済プロバイダ Webhook（署名検証必須）
+      operationId: paymentsWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        "200":
+          description: 受領
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+components:
+  parameters:
+    reservationId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      description: 冪等性キー（同一キーの再試行は同結果を返す）
+      schema: { type: string, minLength: 1 }
+    pageSize:
+      in: query
+      name: pageSize
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    pageToken:
+      in: query
+      name: pageToken
+      schema: { type: string, description: "カーソル（次ページトークン）" }
+
+  responses:
+    BadRequest:
+      description: 入力不正
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    Conflict:
+      description: 競合（二重予約/スロット占有/決済状態）
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    NotFound:
+      description: 見つからない
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+    ServerError:
+      description: サーバエラー
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  schemas:
+    # ===== Reservations =====
+    ReservationStatus:
+      type: string
+      enum: [pending_payment, confirmed, cancelled, no_show, completed]
+
+    Reservation:
+      type: object
+      required:
+        - id
+        - tenantId
+        - locationId
+        - serviceId
+        - primaryResourceId
+        - customerId
+        - status
+        - startAtUTC
+        - endAtUTC
+        - people
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        locationId: { type: string }
+        serviceId: { type: string }
+        primaryResourceId: { type: string }
+        customerId: { type: string }
+        status: { $ref: "#/components/schemas/ReservationStatus" }
+        startAtUTC: { type: string, format: date-time }
+        endAtUTC: { type: string, format: date-time }
+        people: { type: integer, minimum: 1 }
+        extraSnapshot:
+          type: object
+          additionalProperties: true
+
+    CreateReservationRequest:
+      type: object
+      required:
+        - tenantId
+        - locationId
+        - resourceId
+        - serviceId
+        - customerId
+        - startAtUTC
+        - durationMin
+        - people
+      properties:
+        tenantId: { type: string }
+        locationId: { type: string }
+        resourceId: { type: string }
+        serviceId: { type: string }
+        customerId: { type: string }
+        startAtUTC:
+          type: string
+          format: date-time
+          description: ISO8601（UTC）
+        durationMin:
+          type: integer
+          minimum: 15
+        people:
+          type: integer
+          minimum: 1
+        seatType: { type: string }
+        hasNomination: { type: boolean }
+        nominationType: { type: string, enum: [none, in, regular] }
+
+    CreateReservationResponse:
+      type: object
+      required: [reservationId, amount, cancelFeePreview]
+      properties:
+        reservationId: { type: string }
+        amount: { type: integer, description: "最終金額（税サ込）" }
+        cancelFeePreview: { type: integer }
+
+    ExtendReservationRequest:
+      type: object
+      required: [additionalMin]
+      properties:
+        additionalMin:
+          type: integer
+          minimum: 5
+          description: 追加する分数（例：30）
+        recalcPricing:
+          type: boolean
+          default: true
+          description: 料金再計算を行うか（適用ルールが時間帯で変わる場合に推奨）
+
+    ExtendReservationResponse:
+      type: object
+      required: [reservationId, newEndAtUTC, additionalAmount]
+      properties:
+        reservationId: { type: string }
+        newEndAtUTC: { type: string, format: date-time }
+        additionalAmount:
+          type: integer
+          description: 延長により増分請求される金額（税サ込）
+
+    CancelReservationRequest:
+      type: object
+      properties:
+        reason: { type: string, maxLength: 200 }
+        waiveFee:
+          type: boolean
+          default: false
+          description: 管理者によるキャンセル料免除（要権限）
+      required: []
+    CancelReservationResponse:
+      type: object
+      required: [reservationId, canceledAtUTC, cancelFee, refundedAmount]
+      properties:
+        reservationId: { type: string }
+        canceledAtUTC: { type: string, format: date-time }
+        cancelFee: { type: integer, description: 算定されたキャンセル料 }
+        refundedAmount:
+          { type: integer, description: 返金額（負の数で請求追加） }
+
+    ReservationListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Reservation" }
+        nextPageToken:
+          type: string
+          nullable: true
+
+    # ===== Availability =====
+    AvailabilityResponse:
+      type: object
+      required: [unitMin, slots]
+      properties:
+        unitMin: { type: integer, example: 15 }
+        slots:
+          type: array
+          description: 指定日の 00:00〜23:45 のスロット一覧（UTCベース）
+          items:
+            type: object
+            required: [hhmm, available]
+            properties:
+              hhmm:
+                { type: string, example: "1900", description: "HHmm（UTC）" }
+              available: { type: boolean }
+
+    # ===== Config (pricing / cancellation) =====
+    ResolvedPricingConfig:
+      type: object
+      required: [cat, versionTag, cfg]
+      properties:
+        cat: { type: string, enum: [pricing] }
+        versionTag: { type: string }
+        cfg: { $ref: "#/components/schemas/PricingConfig" }
+
+    ResolvedCancellationPolicy:
+      type: object
+      required: [cat, versionTag, cfg]
+      properties:
+        cat: { type: string, enum: [cancellation] }
+        versionTag: { type: string }
+        cfg: { $ref: "#/components/schemas/CancellationPolicy" }
+
+    PricingConfig:
+      type: object
+      additionalProperties: false
+      required: [currency, rounding, serviceRate, taxRate, rules]
+      properties:
+        currency: { type: string, minLength: 3, example: JPY }
+        rounding: { type: string, enum: [floor, ceil, round] }
+        serviceRate: { type: number, minimum: 0 }
+        taxRate: { type: number, minimum: 0 }
+        rules:
+          type: array
+          items: { $ref: "#/components/schemas/PricingRule" }
+
+    PricingRule:
+      type: object
+      additionalProperties: false
+      required: [id, name, when, calc]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        when: { $ref: "#/components/schemas/RuleCond" }
+        calc:
+          type: array
+          items:
+            anyOf:
+              - $ref: "#/components/schemas/CalcFixed"
+              - $ref: "#/components/schemas/CalcPerTime"
+              - $ref: "#/components/schemas/CalcPerPerson"
+              - $ref: "#/components/schemas/CalcPercent"
+        applyTo:
+          { type: string, enum: [subtotal, service, tax], default: subtotal }
+        priority: { type: integer, default: 100 }
+        breakOnMatch: { type: boolean, default: false }
+
+    RuleCond:
+      type: object
+      additionalProperties: false
+      properties:
+        dow:
+          type: array
+          items: { type: integer, minimum: 0, maximum: 6 }
+        time: { $ref: "#/components/schemas/TimeWindow" }
+        seatTypeIn:
+          type: array
+          items: { type: string }
+        hasNomination: { type: boolean }
+        nominationType: { type: string, enum: [none, in, regular] }
+        peopleGte: { type: integer, minimum: 1 }
+        peopleLte: { type: integer, minimum: 1 }
+        courseIdIn:
+          type: array
+          items: { type: string }
+
+    TimeWindow:
+      type: object
+      additionalProperties: false
+      required: [startMin, endMin]
+      properties:
+        startMin: { type: integer, minimum: 0, maximum: 2880 }
+        endMin: { type: integer, minimum: 1, maximum: 2880 }
+
+    CalcFixed:
+      type: object
+      required: [kind, value]
+      properties:
+        kind: { type: string, enum: [fixed] }
+        value: { type: integer, minimum: 0 }
+
+    CalcPerTime:
+      type: object
+      required: [kind, unitMin, unitPrice]
+      properties:
+        kind: { type: string, enum: [per_time] }
+        unitMin: { type: integer, minimum: 1 }
+        unitPrice: { type: integer, minimum: 0 }
+
+    CalcPerPerson:
+      type: object
+      required: [kind, unitPrice]
+      properties:
+        kind: { type: string, enum: [per_person] }
+        unitPrice: { type: integer, minimum: 0 }
+
+    CalcPercent:
+      type: object
+      required: [kind, rate]
+      properties:
+        kind: { type: string, enum: [percent] }
+        rate: { type: number, minimum: -1, maximum: 5 }
+
+    CancellationPolicy:
+      type: object
+      additionalProperties: false
+      required: [tiersAsc, noShow, boundaryRule]
+      properties:
+        tiersAsc:
+          type: array
+          items:
+            type: object
+            required: [thresholdMin, fee]
+            properties:
+              thresholdMin: { type: integer, minimum: 0 }
+              fee:
+                oneOf:
+                  - type: object
+                    required: [kind, rate]
+                    properties:
+                      kind: { type: string, enum: [percent] }
+                      rate: { type: number, minimum: 0, maximum: 1 }
+                  - type: object
+                    required: [kind, amount]
+                    properties:
+                      kind: { type: string, enum: [fixed] }
+                      amount: { type: integer, minimum: 0 }
+        noShow:
+          type: object
+          required: [kind, rate]
+          properties:
+            kind: { type: string, enum: [percent] }
+            rate: { type: number, minimum: 0, maximum: 1 }
+        boundaryRule:
+          type: string
+          enum: [gte, gt]
+
+    # ===== Common =====
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
