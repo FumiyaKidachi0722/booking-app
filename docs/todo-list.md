@@ -21,7 +21,7 @@
 | ------------------------------------ | --------------- | ---------------------------- |
 | Home screen                          | Implemented     | Links to reserve & list      |
 | Reservation form                     | Implemented     | Basic form using shadcn/ui   |
-| Use calendar for date/time selection | Implemented     | `datetime-local` input       |
+| Use calendar for date/time selection | Implemented     | Calendar & time picker       |
 | Reservation list screen              | Implemented     | Styled card list, no filters |
 | Reservation confirmation screen      | Not implemented | Show details after create    |
 | Reservation detail screen            | Not implemented | View single reservation      |
