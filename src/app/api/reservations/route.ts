@@ -2,6 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { CreateReservationUseCase } from "@/server/application/reservations/createReservation";
+import { InMemoryReservationRepository } from "@/server/infrastructure/inMemoryReservationRepository";
 import { schemas } from "@/shared/types/generated/openapi.zod";
 
 const bodySchema = schemas.CreateReservationRequest;
@@ -20,12 +22,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const json = await req.json();
-    bodySchema.parse(json);
+    const command = bodySchema.parse(json);
 
-    return NextResponse.json(
-      { reservationId: "dummy", amount: 0, cancelFeePreview: 0 },
-      { status: 200 },
-    );
+    const repo = new InMemoryReservationRepository();
+    const useCase = new CreateReservationUseCase(repo);
+    const result = await useCase.execute(command, idempotencyKey);
+
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     const message =
       error instanceof z.ZodError
