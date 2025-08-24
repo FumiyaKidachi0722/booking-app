@@ -35,7 +35,7 @@ lib/
 
 ## 必要要件
 
-- Node.js 18+
+- Node.js 22+
 - Firebase プロジェクト（サービスアカウント）
 - Tailwind / shadcn セットアップ
 
