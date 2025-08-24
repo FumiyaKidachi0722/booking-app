@@ -16,7 +16,7 @@ interface ReservationCardProps {
 
 export function ReservationCard({ reservationId, amount, cancelFeePreview }: ReservationCardProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="space-y-1">
           <CardTitle className="text-base">予約ID: {reservationId}</CardTitle>

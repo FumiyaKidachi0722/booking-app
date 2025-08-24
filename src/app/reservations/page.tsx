@@ -22,12 +22,12 @@ export default function ReservationsPage() {
   }, []);
 
   return (
-    <div className="container max-w-4xl py-8 space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
       <h1 className="text-2xl font-bold">予約一覧</h1>
       {reservations.length === 0 ? (
         <EmptyState message="まだ予約がありません" ctaHref="/reserve" ctaLabel="予約する" />
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid w-full gap-6 sm:grid-cols-2">
           {reservations.map((r) => (
             <ReservationCard key={r.reservationId} {...r} />
           ))}
