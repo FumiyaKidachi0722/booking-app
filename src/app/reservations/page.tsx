@@ -1,6 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 interface Reservation {
   reservationId: string;
@@ -19,17 +30,39 @@ export default function ReservationsPage() {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-bold mb-4">予約一覧</h1>
-      <ul className="space-y-2">
-        {reservations.length === 0 && <li>予約がありません</li>}
-        {reservations.map((r) => (
-          <li key={r.reservationId} className="border p-2 rounded">
-            <div>予約ID: {r.reservationId}</div>
-            <div>金額: {r.amount}</div>
-          </li>
-        ))}
-      </ul>
+    <div className="container max-w-2xl py-8">
+      <h1 className="mb-6 text-2xl font-bold">予約一覧</h1>
+      {reservations.length === 0 ? (
+        <div className="text-center rounded-xl border p-8">
+          <p className="mb-4 text-sm text-muted-foreground">まだ予約がありません</p>
+          <Button asChild>
+            <Link href="/reserve">予約する</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reservations.map((r) => (
+            <Card key={r.reservationId}>
+              <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                  <CardTitle className="text-base">予約ID: {r.reservationId}</CardTitle>
+                  <CardDescription>金額: ¥{r.amount.toLocaleString()}</CardDescription>
+                </div>
+                <CardAction>
+                  <Button variant="outline" size="sm" disabled>
+                    詳細
+                  </Button>
+                </CardAction>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  キャンセル料見込み: ¥{r.cancelFeePreview.toLocaleString()}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
