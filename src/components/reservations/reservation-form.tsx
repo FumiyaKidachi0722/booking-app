@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,10 +16,37 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { schemas } from '@/shared/types/generated/openapi.zod';
+import { FormInputField } from '@/components/ui/form-input-field';
 
-const formSchema = schemas.CreateReservationRequest;
+const idSchema = (label: string) =>
+  z
+    .string()
+    .min(1, { message: `${label}は必須です` })
+    .regex(/^[A-Za-z0-9_-]+$/, {
+      message: `${label}は英数字と-_のみ使用できます`,
+    });
+
+const formSchema = z.object({
+  tenantId: idSchema('Tenant ID'),
+  locationId: idSchema('Location ID'),
+  resourceId: idSchema('Resource ID'),
+  serviceId: idSchema('Service ID'),
+  customerId: idSchema('Customer ID'),
+  startAtUTC: z
+    .string()
+    .min(1, { message: '開始日時を選択してください' })
+    .refine((v) => !Number.isNaN(Date.parse(v)), {
+      message: '有効な日時を選択してください',
+    }),
+  durationMin: z
+    .number({ invalid_type_error: '数値を入力してください' })
+    .int()
+    .min(15, { message: '15分以上で入力してください' }),
+  people: z
+    .number({ invalid_type_error: '数値を入力してください' })
+    .int()
+    .min(1, { message: '1人以上を入力してください' }),
+});
 
 export function ReservationForm() {
   const [result, setResult] = useState<string>('');
@@ -66,8 +93,8 @@ export function ReservationForm() {
   ] as const;
 
   const numberFields = [
-    { name: 'durationMin', label: 'Duration (min)' },
-    { name: 'people', label: 'People' },
+    { name: 'durationMin', label: 'Duration (min)', min: 15 },
+    { name: 'people', label: 'People', min: 1 },
   ] as const;
 
   return (
@@ -79,20 +106,7 @@ export function ReservationForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {textFields.map((f) => (
-              <FormField
-                key={f.name}
-                control={form.control}
-                name={f.name}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{f.label}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormInputField key={f.name} control={form.control} name={f.name} label={f.label} />
             ))}
 
             <FormField
@@ -113,23 +127,13 @@ export function ReservationForm() {
             />
 
             {numberFields.map((f) => (
-              <FormField
+              <FormInputField
                 key={f.name}
                 control={form.control}
                 name={f.name}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{f.label}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={f.label}
+                type="number"
+                min={f.min}
               />
             ))}
 

@@ -20,7 +20,7 @@
 | Feature                              | Status          | Notes                                        |
 | ------------------------------------ | --------------- | -------------------------------------------- |
 | Home screen                          | Implemented     | Links to reserve & list                      |
-| Reservation form                     | Implemented     | Basic form using shadcn/ui                   |
+| Reservation form                     | Implemented     | shadcn/ui form with validation and errors    |
 | Use calendar for date/time selection | Implemented     | Calendar & time picker                       |
 | Reservation list screen              | Implemented     | Responsive grid using dummy data, no filters |
 | Reservation confirmation screen      | Not implemented | Show details after create                    |
