@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { addDays, addMinutes, format, startOfDay, startOfWeek } from 'date-fns';
+import { addDays, addMinutes, format, startOfDay } from 'date-fns';
+
+import { BUSINESS_END_HOUR, BUSINESS_START_HOUR } from '@/lib/constants';
 
 interface Slot {
   hhmm: string;
@@ -17,11 +19,8 @@ interface WeeklyCalendarProps {
 }
 
 export function WeeklyCalendar({ tenantId, resourceId, selected, onSelect }: WeeklyCalendarProps) {
-  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    [weekStart],
-  );
+  const today = useMemo(() => startOfDay(new Date()), []);
+  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i)), [today]);
   const [data, setData] = useState<Record<string, Slot[]>>({});
 
   useEffect(() => {
@@ -57,8 +56,8 @@ export function WeeklyCalendar({ tenantId, resourceId, selected, onSelect }: Wee
     };
   }, [tenantId, resourceId, days]);
 
-  const times = Array.from({ length: (18 - 9) * 4 }, (_, i) =>
-    addMinutes(startOfDay(new Date()), 9 * 60 + i * 15),
+  const times = Array.from({ length: (BUSINESS_END_HOUR - BUSINESS_START_HOUR) * 4 }, (_, i) =>
+    addMinutes(startOfDay(new Date()), BUSINESS_START_HOUR * 60 + i * 15),
   );
 
   if (!tenantId || !resourceId) {
@@ -86,7 +85,8 @@ export function WeeklyCalendar({ tenantId, resourceId, selected, onSelect }: Wee
               const hhmm = format(time, 'HHmm');
               const slotDate = new Date(`${dateUTC}T${format(time, 'HH:mm')}:00Z`);
               const slot = data[dateUTC]?.find((s) => s.hhmm === hhmm);
-              const available = slot?.available;
+              const now = new Date();
+              const available = slot?.available && slotDate.getTime() >= now.getTime();
               const isSelected = selected && selected.getTime() === slotDate.getTime();
               return (
                 <button

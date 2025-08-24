@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { InMemoryReservationRepository } from '@/server/infrastructure/inMemoryReservationRepository';
 
@@ -12,6 +12,7 @@ function makeRequest(search: string) {
 
 describe('GET /api/availability', () => {
   it('filters availability by tenant and resource', async () => {
+    vi.setSystemTime(new Date('2025-08-24T09:00:00.000Z'));
     const repo = new InMemoryReservationRepository();
     await repo.create(
       {
@@ -45,5 +46,18 @@ describe('GET /api/availability', () => {
       (s: { hhmm: string; available: boolean }) => s.hhmm === '1000',
     );
     expect(otherResourceSlot?.available).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('excludes past times and slots outside business hours', async () => {
+    vi.setSystemTime(new Date('2025-08-24T09:30:00.000Z'));
+    const res = await GET(makeRequest('?tenantId=t&resourceId=r&dateUTC=2025-08-24'));
+    const json = await res.json();
+    expect(json.slots.some((s: { hhmm: string }) => s.hhmm === '0800')).toBe(false);
+    const slot0900 = json.slots.find((s: { hhmm: string }) => s.hhmm === '0900');
+    expect(slot0900?.available).toBe(false);
+    const slot0930 = json.slots.find((s: { hhmm: string }) => s.hhmm === '0930');
+    expect(slot0930?.available).toBe(true);
+    vi.useRealTimers();
   });
 });

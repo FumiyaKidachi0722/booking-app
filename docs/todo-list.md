@@ -22,7 +22,7 @@
 | Home screen                          | Implemented     | Links to reserve & list                      |
 | Reservation target selection screen  | Implemented     | Choose tenant/resource from dummy lists      |
 | Reservation form                     | Implemented     | shadcn/ui form with validation and errors    |
-| Use calendar for date/time selection | Implemented     | Weekly calendar with slot picker             |
+| Use calendar for date/time selection | Implemented     | Weekly calendar, future business hours only  |
 | Reservation list screen              | Implemented     | Responsive grid using dummy data, no filters |
 | Reservation confirmation screen      | Not implemented | Show details after create                    |
 | Reservation detail screen            | Not implemented | View single reservation                      |

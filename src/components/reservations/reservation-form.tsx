@@ -5,11 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { FormInputField } from '@/components/atoms/form-input-field';
 import { WeeklyCalendar } from '@/components/reservations/weekly-calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { FormInputField } from '@/components/ui/form-input-field';
 
 const idSchema = (label: string) =>
   z

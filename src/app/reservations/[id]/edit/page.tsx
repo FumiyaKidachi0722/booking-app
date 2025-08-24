@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { DateTimePicker } from '@/components/atoms/date-time-picker';
+import { FormInputField } from '@/components/atoms/form-input-field';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
 import {
   Form,
   FormControl,
@@ -17,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { FormInputField } from '@/components/ui/form-input-field';
 
 const formSchema = z.object({
   startAtUTC: z

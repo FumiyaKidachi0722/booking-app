@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { BUSINESS_END_HOUR, BUSINESS_START_HOUR } from '@/lib/constants';
 import { InMemoryReservationRepository } from '@/server/infrastructure/inMemoryReservationRepository';
 
 const querySchema = z.object({
@@ -22,17 +23,29 @@ export async function GET(req: NextRequest) {
       (r) => r.tenantId === tenantId && r.resourceId === resourceId,
     );
 
+    const todayUTC = new Date().toISOString().substring(0, 10);
+    if (dateUTC < todayUTC) {
+      return NextResponse.json({ unitMin, slots: [] });
+    }
+
     const dayStart = new Date(`${dateUTC}T00:00:00Z`);
-    const totalSlots = (24 * 60) / unitMin;
+    const startMinutes = BUSINESS_START_HOUR * 60;
+    const endMinutes = BUSINESS_END_HOUR * 60;
+    const totalSlots = (endMinutes - startMinutes) / unitMin;
+    const now = new Date();
+
     const slots = Array.from({ length: totalSlots }, (_, i) => {
-      const slotStart = new Date(dayStart.getTime() + i * unitMin * 60000);
+      const slotStart = new Date(dayStart.getTime() + (startMinutes + i * unitMin) * 60000);
       const slotEnd = new Date(slotStart.getTime() + unitMin * 60000);
       const hhmm = slotStart.toISOString().substring(11, 16).replace(':', '');
-      const available = !reservations.some((r) => {
-        const start = new Date(r.startAtUTC).getTime();
-        const end = start + r.durationMin * 60000;
-        return slotStart.getTime() < end && slotEnd.getTime() > start;
-      });
+      const isPastSlot = dateUTC === todayUTC && slotStart.getTime() < now.getTime();
+      const available =
+        !isPastSlot &&
+        !reservations.some((r) => {
+          const start = new Date(r.startAtUTC).getTime();
+          const end = start + r.durationMin * 60000;
+          return slotStart.getTime() < end && slotEnd.getTime() > start;
+        });
       return { hhmm, available };
     });
 
