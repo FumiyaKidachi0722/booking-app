@@ -8,6 +8,7 @@
 - **二重予約防止**：スロット離散化（デフォルト 15 分）× Firestore トランザクション
 - **Config-as-Data**：pricing / cancellation などを階層＋バージョン管理、公開版のみ適用
 - **スキーマ拡張**：業態固有データを JSON（`extra`）で安全に保持（Schema Registry+Zod）
+- **空き状況確認**：週次カレンダーで空いている時間帯を直感的に選択
 - **UI/UX**：shadcn/ui（Radix）でアクセシビリティと一貫性を担保
 
 ---
@@ -209,7 +210,7 @@ GET /api/reservations
 - [ ] `GET /api/reservations/{id}` – 予約詳細
 - [ ] `POST /api/reservations/{id}/extend` – 予約延長
 - [ ] `POST /api/reservations/{id}/cancel` – 予約キャンセル
-- [ ] `GET /api/availability` – 空き状況検索
+- [x] `GET /api/availability` – 空き状況検索
 - [ ] `GET /api/config/preview` – 公開設定プレビュー
 - [ ] `POST /api/payments/webhook` – 決済イベント受信
 - [ ] `POST /api/auth/login` – ログイン
@@ -218,13 +219,13 @@ GET /api/reservations
 ### UI
 
 - [x] ホーム画面（予約フォーム・一覧への導線）
-- [x] 予約フォーム（カレンダー入力対応）
+- [x] 予約フォーム（週次カレンダーで空き時間選択）
 - [x] 予約一覧画面
 - [ ] 予約確認画面
 - [ ] 予約詳細画面
 - [ ] キャンセルフロー
 - [ ] 延長フロー
-- [ ] 空き検索画面
+- [x] 空き検索（週次カレンダー）
 - [ ] 設定プレビュー画面
 - [ ] ログイン画面
 

@@ -13,12 +13,14 @@ const reservations: Reservation[] = [
     amount: 5000,
     cancelFeePreview: 500,
     startAtUTC: new Date().toISOString(),
+    durationMin: 60,
   },
   {
     reservationId: 'dummy-2',
     amount: 8000,
     cancelFeePreview: 0,
     startAtUTC: new Date(Date.now() + 86400000).toISOString(),
+    durationMin: 60,
   },
 ];
 
@@ -29,6 +31,7 @@ export class InMemoryReservationRepository implements ReservationRepository {
       amount: 0,
       cancelFeePreview: 0,
       startAtUTC: command.startAtUTC,
+      durationMin: command.durationMin,
     };
     reservations.push(reservation);
     return reservation;
@@ -44,7 +47,7 @@ export class InMemoryReservationRepository implements ReservationRepository {
 
   async update(
     id: string,
-    data: Partial<Pick<Reservation, 'startAtUTC' | 'amount' | 'cancelFeePreview'>>,
+    data: Partial<Pick<Reservation, 'startAtUTC' | 'amount' | 'cancelFeePreview' | 'durationMin'>>,
   ): Promise<Reservation | undefined> {
     const r = await this.get(id);
     if (!r) return undefined;

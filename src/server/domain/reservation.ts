@@ -10,6 +10,7 @@ export interface Reservation {
   amount: number;
   cancelFeePreview: number;
   startAtUTC: string;
+  durationMin: number;
 }
 
 export interface ReservationRepository {
@@ -18,6 +19,6 @@ export interface ReservationRepository {
   get(id: string): Promise<Reservation | undefined>;
   update(
     id: string,
-    data: Partial<Pick<Reservation, 'startAtUTC' | 'amount' | 'cancelFeePreview'>>,
+    data: Partial<Pick<Reservation, 'startAtUTC' | 'amount' | 'cancelFeePreview' | 'durationMin'>>,
   ): Promise<Reservation | undefined>;
 }

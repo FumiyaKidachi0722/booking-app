@@ -5,17 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { WeeklyCalendar } from '@/components/reservations/weekly-calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormInputField } from '@/components/ui/form-input-field';
 
 const idSchema = (label: string) =>
@@ -98,49 +91,55 @@ export function ReservationForm() {
   ] as const;
 
   return (
-    <Card className="max-w-md mx-auto">
+    <Card className="mx-auto max-w-5xl">
       <CardHeader>
         <CardTitle className="text-xl">予約フォーム</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {textFields.map((f) => (
-              <FormInputField key={f.name} control={form.control} name={f.name} label={f.label} />
-            ))}
-
-            <FormField
-              control={form.control}
-              name="startAtUTC"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>開始日時</FormLabel>
-                  <FormControl>
-                    <DateTimePicker
-                      value={field.value ? new Date(field.value) : undefined}
-                      onChange={(d) => field.onChange(d ? d.toISOString() : '')}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div className="grid gap-6 md:grid-cols-2">
+            <WeeklyCalendar
+              selected={form.watch('startAtUTC') ? new Date(form.watch('startAtUTC')) : undefined}
+              onSelect={(d) =>
+                form.setValue('startAtUTC', d.toISOString(), { shouldValidate: true })
+              }
             />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {textFields.map((f) => (
+                <FormInputField key={f.name} control={form.control} name={f.name} label={f.label} />
+              ))}
 
-            {numberFields.map((f) => (
-              <FormInputField
-                key={f.name}
+              {numberFields.map((f) => (
+                <FormInputField
+                  key={f.name}
+                  control={form.control}
+                  name={f.name}
+                  label={f.label}
+                  type="number"
+                  min={f.min}
+                />
+              ))}
+
+              <FormField
                 control={form.control}
-                name={f.name}
-                label={f.label}
-                type="number"
-                min={f.min}
+                name="startAtUTC"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>開始日時</FormLabel>
+                    <input type="hidden" {...field} />
+                    <p className="text-sm">
+                      {field.value ? new Date(field.value).toLocaleString() : '未選択'}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            ))}
 
-            <Button type="submit" className="w-full">
-              予約する
-            </Button>
-          </form>
+              <Button type="submit" className="w-full">
+                予約する
+              </Button>
+            </form>
+          </div>
         </Form>
         {result && <p className="mt-4 text-sm">{result}</p>}
       </CardContent>
