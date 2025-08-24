@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -8,7 +9,8 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
-import { FormInputField } from '@/components/ui/form-input-field';
+import { FormSelectField } from '@/components/ui/form-select-field';
+import { locations, resources, services, tenants } from '@/lib/mockData';
 
 const schema = z.object({
   tenantId: z.string().min(1, { message: 'Tenant IDは必須です' }),
@@ -29,6 +31,19 @@ export function ReservationSetupForm() {
     },
   });
 
+  const tenantId = form.watch('tenantId');
+  const locationId = form.watch('locationId');
+
+  useEffect(() => {
+    form.setValue('locationId', '');
+    form.setValue('resourceId', '');
+    form.setValue('serviceId', '');
+  }, [tenantId, form]);
+
+  useEffect(() => {
+    form.setValue('resourceId', '');
+  }, [locationId, form]);
+
   function onSubmit(values: z.infer<typeof schema>) {
     const params = new URLSearchParams();
     (Object.entries(values) as [string, string][]).forEach(([k, v]) => {
@@ -45,10 +60,41 @@ export function ReservationSetupForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormInputField control={form.control} name="tenantId" label="Tenant ID" />
-            <FormInputField control={form.control} name="locationId" label="Location ID" />
-            <FormInputField control={form.control} name="resourceId" label="Resource ID" />
-            <FormInputField control={form.control} name="serviceId" label="Service ID" />
+            <FormSelectField
+              control={form.control}
+              name="tenantId"
+              label="Tenant"
+              options={tenants.map((t) => ({ value: t.id, label: t.name }))}
+            />
+            <FormSelectField
+              control={form.control}
+              name="locationId"
+              label="Location"
+              options={locations
+                .filter((l) => l.tenantId === tenantId)
+                .map((l) => ({ value: l.id, label: l.name }))}
+              disabled={!tenantId}
+            />
+            <FormSelectField
+              control={form.control}
+              name="resourceId"
+              label="Resource"
+              options={resources
+                .filter(
+                  (r) => r.tenantId === tenantId && (!locationId || r.locationId === locationId),
+                )
+                .map((r) => ({ value: r.id, label: r.name }))}
+              disabled={!tenantId}
+            />
+            <FormSelectField
+              control={form.control}
+              name="serviceId"
+              label="Service"
+              options={services
+                .filter((s) => s.tenantId === tenantId)
+                .map((s) => ({ value: s.id, label: s.name }))}
+              disabled={!tenantId}
+            />
             <Button type="submit" className="w-full">
               次へ
             </Button>

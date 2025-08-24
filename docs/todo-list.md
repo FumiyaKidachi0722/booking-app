@@ -20,7 +20,7 @@
 | Feature                              | Status          | Notes                                        |
 | ------------------------------------ | --------------- | -------------------------------------------- |
 | Home screen                          | Implemented     | Links to reserve & list                      |
-| Reservation target selection screen  | Implemented     | Choose tenant and resource before form       |
+| Reservation target selection screen  | Implemented     | Choose tenant/resource from dummy dropdowns  |
 | Reservation form                     | Implemented     | shadcn/ui form with validation and errors    |
 | Use calendar for date/time selection | Implemented     | Weekly calendar with slot picker             |
 | Reservation list screen              | Implemented     | Responsive grid using dummy data, no filters |

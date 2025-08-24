@@ -9,6 +9,7 @@
 - **Config-as-Data**：pricing / cancellation などを階層＋バージョン管理、公開版のみ適用
 - **スキーマ拡張**：業態固有データを JSON（`extra`）で安全に保持（Schema Registry+Zod）
 - **空き状況確認**：週次カレンダーで空いている時間帯を直感的に選択
+- **予約対象選択**：テナントやリソースをダミーの一覧から選択して予約開始
 - **UI/UX**：shadcn/ui（Radix）でアクセシビリティと一貫性を担保
 
 ---
@@ -134,7 +135,7 @@ pnpm install # または npm/yarn
 ```bash
 pnpm dev
 # http://localhost:3000/ (ホーム)
-# http://localhost:3000/reserve (予約対象選択)
+# http://localhost:3000/reserve (予約対象選択 - ダミーデータ)
 # http://localhost:3000/reserve/create (予約フォーム)
 # http://localhost:3000/reservations (予約一覧)
 ```
