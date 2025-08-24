@@ -10,28 +10,51 @@ interface Slot {
 }
 
 interface WeeklyCalendarProps {
+  tenantId: string;
+  resourceId: string;
   selected?: Date;
   onSelect: (date: Date) => void;
 }
 
-export function WeeklyCalendar({ selected, onSelect }: WeeklyCalendarProps) {
+export function WeeklyCalendar({ tenantId, resourceId, selected, onSelect }: WeeklyCalendarProps) {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const [data, setData] = useState<Record<string, Slot[]>>({});
 
   useEffect(() => {
+    if (!tenantId || !resourceId) return;
+    setData({});
     const daysToFetch = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-    daysToFetch.forEach((day) => {
-      const dateUTC = format(day, 'yyyy-MM-dd');
-      fetch(`/api/availability?tenantId=dummy&resourceId=dummy&dateUTC=${dateUTC}`)
-        .then((res) => res.json())
-        .then((json) => setData((prev) => ({ ...prev, [dateUTC]: json.slots })));
+    Promise.all(
+      daysToFetch.map((day) => {
+        const dateUTC = format(day, 'yyyy-MM-dd');
+        return fetch(
+          `/api/availability?tenantId=${tenantId}&resourceId=${resourceId}&dateUTC=${dateUTC}`,
+        )
+          .then((res) => res.json())
+          .then((json) => ({ dateUTC, slots: json.slots }));
+      }),
+    ).then((results) => {
+      setData(
+        results.reduce<Record<string, Slot[]>>((acc, cur) => {
+          acc[cur.dateUTC] = cur.slots;
+          return acc;
+        }, {}),
+      );
     });
-  }, [weekStart]);
+  }, [weekStart, tenantId, resourceId]);
 
   const times = Array.from({ length: (18 - 9) * 4 }, (_, i) =>
     addMinutes(startOfDay(new Date()), 9 * 60 + i * 15),
   );
+
+  if (!tenantId || !resourceId) {
+    return (
+      <div className="flex h-full items-center justify-center p-4 text-sm text-gray-500">
+        テナントIDとリソースIDを入力してください
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-auto">
@@ -61,7 +84,7 @@ export function WeeklyCalendar({ selected, onSelect }: WeeklyCalendarProps) {
                     'h-8 border text-xs',
                     available
                       ? 'bg-green-100 hover:bg-green-200'
-                      : 'bg-gray-100 cursor-not-allowed',
+                      : 'cursor-not-allowed bg-gray-100',
                     isSelected && 'bg-blue-500 text-white',
                   )}
                 />

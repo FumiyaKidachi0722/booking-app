@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -90,6 +90,13 @@ export function ReservationForm() {
     { name: 'people', label: 'People', min: 1 },
   ] as const;
 
+  const tenantId = form.watch('tenantId');
+  const resourceId = form.watch('resourceId');
+
+  useEffect(() => {
+    form.setValue('startAtUTC', '');
+  }, [tenantId, resourceId, form]);
+
   return (
     <Card className="mx-auto max-w-5xl">
       <CardHeader>
@@ -99,6 +106,8 @@ export function ReservationForm() {
         <Form {...form}>
           <div className="grid gap-6 md:grid-cols-2">
             <WeeklyCalendar
+              tenantId={tenantId}
+              resourceId={resourceId}
               selected={form.watch('startAtUTC') ? new Date(form.watch('startAtUTC')) : undefined}
               onSelect={(d) =>
                 form.setValue('startAtUTC', d.toISOString(), { shouldValidate: true })
