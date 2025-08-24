@@ -60,4 +60,15 @@ describe('GET /api/availability', () => {
     expect(slot0930?.available).toBe(true);
     vi.useRealTimers();
   });
+
+  it('returns dummy availability for configured dates', async () => {
+    vi.setSystemTime(new Date('2025-08-24T00:00:00.000Z'));
+    const res = await GET(makeRequest('?tenantId=t&resourceId=r&dateUTC=2025-08-25'));
+    const json = await res.json();
+    const available = json.slots
+      .filter((s: { available: boolean }) => s.available)
+      .map((s: { hhmm: string }) => s.hhmm);
+    expect(available).toEqual(['0900', '0930', '1400', '1430']);
+    vi.useRealTimers();
+  });
 });

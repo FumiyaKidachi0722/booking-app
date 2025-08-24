@@ -2,18 +2,18 @@
 
 ## API
 
-| Endpoint                             | Status          | Notes                            |
-| ------------------------------------ | --------------- | -------------------------------- |
-| `POST /api/reservations`             | Implemented     | Create reservation               |
-| `GET /api/reservations`              | Partially impl. | Returns dummy data, no filters   |
-| `GET /api/reservations/{id}`         | Not implemented | Reservation detail               |
-| `POST /api/reservations/{id}/extend` | Not implemented | Extend reservation               |
-| `POST /api/reservations/{id}/cancel` | Not implemented | Cancel reservation               |
-| `GET /api/availability`              | Implemented     | 15-min slots with conflict check |
-| `GET /api/config/preview`            | Not implemented | Preview published config         |
-| `POST /api/payments/webhook`         | Not implemented | Handle payment events            |
-| `POST /api/auth/login`               | Not implemented | User login                       |
-| `POST /api/auth/logout`              | Not implemented | User logout                      |
+| Endpoint                             | Status          | Notes                                                       |
+| ------------------------------------ | --------------- | ----------------------------------------------------------- |
+| `POST /api/reservations`             | Implemented     | Create reservation                                          |
+| `GET /api/reservations`              | Partially impl. | Returns dummy data, no filters                              |
+| `GET /api/reservations/{id}`         | Not implemented | Reservation detail                                          |
+| `POST /api/reservations/{id}/extend` | Not implemented | Extend reservation                                          |
+| `POST /api/reservations/{id}/cancel` | Not implemented | Cancel reservation                                          |
+| `GET /api/availability`              | Implemented     | 15-min slots with conflict check; dummy slots 2025-08-25~31 |
+| `GET /api/config/preview`            | Not implemented | Preview published config                                    |
+| `POST /api/payments/webhook`         | Not implemented | Handle payment events                                       |
+| `POST /api/auth/login`               | Not implemented | User login                                                  |
+| `POST /api/auth/logout`              | Not implemented | User logout                                                 |
 
 ## UI
 

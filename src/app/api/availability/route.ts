@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { BUSINESS_END_HOUR, BUSINESS_START_HOUR } from '@/lib/constants';
+import { availabilityByDate } from '@/lib/mockAvailability';
 import { InMemoryReservationRepository } from '@/server/infrastructure/inMemoryReservationRepository';
 
 const querySchema = z.object({
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
     }
 
     const dayStart = new Date(`${dateUTC}T00:00:00Z`);
+    const forcedSlots = availabilityByDate[dateUTC];
     const startMinutes = BUSINESS_START_HOUR * 60;
     const endMinutes = BUSINESS_END_HOUR * 60;
     const totalSlots = (endMinutes - startMinutes) / unitMin;
@@ -39,13 +41,14 @@ export async function GET(req: NextRequest) {
       const slotEnd = new Date(slotStart.getTime() + unitMin * 60000);
       const hhmm = slotStart.toISOString().substring(11, 16).replace(':', '');
       const isPastSlot = dateUTC === todayUTC && slotStart.getTime() < now.getTime();
-      const available =
-        !isPastSlot &&
-        !reservations.some((r) => {
-          const start = new Date(r.startAtUTC).getTime();
-          const end = start + r.durationMin * 60000;
-          return slotStart.getTime() < end && slotEnd.getTime() > start;
-        });
+      const available = forcedSlots
+        ? !isPastSlot && forcedSlots.includes(hhmm)
+        : !isPastSlot &&
+          !reservations.some((r) => {
+            const start = new Date(r.startAtUTC).getTime();
+            const end = start + r.durationMin * 60000;
+            return slotStart.getTime() < end && slotEnd.getTime() > start;
+          });
       return { hhmm, available };
     });
 
