@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import { PageHeader } from '@/components/page-header';
@@ -12,14 +12,15 @@ interface Reservation {
   startAtUTC: string;
 }
 
-export default function ReservationDetailPage({ params }: { params: { id: string } }) {
+export default function ReservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [reservation, setReservation] = useState<Reservation | null>(null);
 
   useEffect(() => {
-    fetch(`/api/reservations/${params.id}`)
+    fetch(`/api/reservations/${id}`)
       .then((res) => res.json())
       .then((data) => setReservation(data));
-  }, [params.id]);
+  }, [id]);
 
   if (!reservation) {
     return <p className="p-8">読み込み中...</p>;
