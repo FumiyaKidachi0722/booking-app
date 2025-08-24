@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
-import { FormSelectField } from '@/components/ui/form-select-field';
+import { FormOptionListField } from '@/components/ui/form-option-list-field';
 import { locations, resources, services, tenants } from '@/lib/mockData';
 
 const schema = z.object({
@@ -60,13 +60,13 @@ export function ReservationSetupForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormSelectField
+            <FormOptionListField
               control={form.control}
               name="tenantId"
               label="Tenant"
               options={tenants.map((t) => ({ value: t.id, label: t.name }))}
             />
-            <FormSelectField
+            <FormOptionListField
               control={form.control}
               name="locationId"
               label="Location"
@@ -75,7 +75,7 @@ export function ReservationSetupForm() {
                 .map((l) => ({ value: l.id, label: l.name }))}
               disabled={!tenantId}
             />
-            <FormSelectField
+            <FormOptionListField
               control={form.control}
               name="resourceId"
               label="Resource"
@@ -86,7 +86,7 @@ export function ReservationSetupForm() {
                 .map((r) => ({ value: r.id, label: r.name }))}
               disabled={!tenantId}
             />
-            <FormSelectField
+            <FormOptionListField
               control={form.control}
               name="serviceId"
               label="Service"
