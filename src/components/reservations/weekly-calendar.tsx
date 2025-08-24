@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { addDays, addMinutes, format, startOfDay, startOfWeek } from 'date-fns';
 
@@ -17,24 +17,34 @@ interface WeeklyCalendarProps {
 }
 
 export function WeeklyCalendar({ tenantId, resourceId, selected, onSelect }: WeeklyCalendarProps) {
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const weekStart = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
+  const days = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    [weekStart],
+  );
   const [data, setData] = useState<Record<string, Slot[]>>({});
 
   useEffect(() => {
     if (!tenantId || !resourceId) return;
     setData({});
-    const daysToFetch = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    let ignore = false;
     Promise.all(
-      daysToFetch.map((day) => {
+      days.map(async (day) => {
         const dateUTC = format(day, 'yyyy-MM-dd');
-        return fetch(
-          `/api/availability?tenantId=${tenantId}&resourceId=${resourceId}&dateUTC=${dateUTC}`,
-        )
-          .then((res) => res.json())
-          .then((json) => ({ dateUTC, slots: json.slots }));
+        try {
+          const res = await fetch(
+            `/api/availability?tenantId=${tenantId}&resourceId=${resourceId}&dateUTC=${dateUTC}`,
+          );
+          if (!res.ok) throw new Error('Failed to fetch');
+          const json = await res.json();
+          return { dateUTC, slots: json.slots as Slot[] };
+        } catch (e) {
+          console.error(e);
+          return { dateUTC, slots: [] as Slot[] };
+        }
       }),
     ).then((results) => {
+      if (ignore) return;
       setData(
         results.reduce<Record<string, Slot[]>>((acc, cur) => {
           acc[cur.dateUTC] = cur.slots;
@@ -42,7 +52,10 @@ export function WeeklyCalendar({ tenantId, resourceId, selected, onSelect }: Wee
         }, {}),
       );
     });
-  }, [weekStart, tenantId, resourceId]);
+    return () => {
+      ignore = true;
+    };
+  }, [tenantId, resourceId, days]);
 
   const times = Array.from({ length: (18 - 9) * 4 }, (_, i) =>
     addMinutes(startOfDay(new Date()), 9 * 60 + i * 15),

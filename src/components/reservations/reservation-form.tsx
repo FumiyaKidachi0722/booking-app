@@ -41,15 +41,27 @@ const formSchema = z.object({
     .min(1, { message: '1人以上を入力してください' }),
 });
 
-export function ReservationForm() {
+interface ReservationFormProps {
+  tenantId?: string;
+  locationId?: string;
+  resourceId?: string;
+  serviceId?: string;
+}
+
+export function ReservationForm({
+  tenantId: defaultTenantId = '',
+  locationId: defaultLocationId = '',
+  resourceId: defaultResourceId = '',
+  serviceId: defaultServiceId = '',
+}: ReservationFormProps) {
   const [result, setResult] = useState<string>('');
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      tenantId: '',
-      locationId: '',
-      resourceId: '',
-      serviceId: '',
+      tenantId: defaultTenantId,
+      locationId: defaultLocationId,
+      resourceId: defaultResourceId,
+      serviceId: defaultServiceId,
       customerId: '',
       startAtUTC: '',
       durationMin: 60,
@@ -78,11 +90,11 @@ export function ReservationForm() {
   }
 
   const textFields = [
-    { name: 'tenantId', label: 'Tenant ID' },
-    { name: 'locationId', label: 'Location ID' },
-    { name: 'resourceId', label: 'Resource ID' },
-    { name: 'serviceId', label: 'Service ID' },
-    { name: 'customerId', label: 'Customer ID' },
+    { name: 'tenantId', label: 'Tenant ID', disabled: true },
+    { name: 'locationId', label: 'Location ID', disabled: true },
+    { name: 'resourceId', label: 'Resource ID', disabled: true },
+    { name: 'serviceId', label: 'Service ID', disabled: true },
+    { name: 'customerId', label: 'Customer ID', disabled: false },
   ] as const;
 
   const numberFields = [
@@ -115,7 +127,13 @@ export function ReservationForm() {
             />
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {textFields.map((f) => (
-                <FormInputField key={f.name} control={form.control} name={f.name} label={f.label} />
+                <FormInputField
+                  key={f.name}
+                  control={form.control}
+                  name={f.name}
+                  label={f.label}
+                  disabled={f.disabled}
+                />
               ))}
 
               {numberFields.map((f) => (

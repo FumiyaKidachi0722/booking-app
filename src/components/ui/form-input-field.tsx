@@ -8,9 +8,17 @@ interface FormInputFieldProps<T> {
   label: string;
   type?: React.HTMLInputTypeAttribute;
   min?: number;
+  disabled?: boolean;
 }
 
-export function FormInputField<T>({ control, name, label, type = 'text', min }: FormInputFieldProps<T>) {
+export function FormInputField<T>({
+  control,
+  name,
+  label,
+  type = 'text',
+  min,
+  disabled,
+}: FormInputFieldProps<T>) {
   return (
     <FormField
       control={control}
@@ -23,6 +31,7 @@ export function FormInputField<T>({ control, name, label, type = 'text', min }: 
               {...field}
               type={type}
               min={min}
+              disabled={disabled}
               required
               onChange={
                 type === 'number'
