@@ -8,6 +8,9 @@ export default function Home() {
       <Link href="/reserve" className="text-blue-600 underline hover:no-underline">
         予約する
       </Link>
+      <Link href="/reservations" className="text-blue-600 underline hover:no-underline">
+        予約一覧
+      </Link>
     </main>
   );
 }
