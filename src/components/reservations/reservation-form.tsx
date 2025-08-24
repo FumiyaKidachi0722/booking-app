@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -54,6 +55,7 @@ export function ReservationForm({
   resourceId: defaultResourceId = '',
   serviceId: defaultServiceId = '',
 }: ReservationFormProps) {
+  const router = useRouter();
   const [result, setResult] = useState<string>('');
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,7 +84,8 @@ export function ReservationForm({
 
     if (res.ok) {
       const data = await res.json();
-      setResult(`予約ID: ${data.reservationId}`);
+      alert('予約を登録しました');
+      router.push(`/reservations/${data.reservationId}`);
     } else {
       const err = await res.json().catch(() => ({}));
       setResult(`エラー: ${err.message ?? res.status}`);

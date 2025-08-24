@@ -53,12 +53,18 @@ export default function ReservationEditPage({ params }: { params: Promise<{ id: 
   }, [id, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await fetch(`/api/reservations/${id}`, {
+    const res = await fetch(`/api/reservations/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(values),
     });
-    router.push(`/reservations/${id}`);
+    if (res.ok) {
+      alert('予約を更新しました');
+      router.push(`/reservations/${id}`);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert(`更新に失敗しました: ${err.message ?? res.status}`);
+    }
   }
 
   if (loading) return <p className="p-8">読み込み中...</p>;

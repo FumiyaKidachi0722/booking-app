@@ -6,7 +6,7 @@
 | ------------------------------------ | --------------- | ----------------------------------------------------------- |
 | `POST /api/reservations`             | Implemented     | Create reservation                                          |
 | `GET /api/reservations`              | Partially impl. | Returns dummy data, no filters                              |
-| `GET /api/reservations/{id}`         | Not implemented | Reservation detail                                          |
+| `GET /api/reservations/{id}`         | Implemented     | Reservation detail                                          |
 | `POST /api/reservations/{id}/extend` | Not implemented | Extend reservation                                          |
 | `POST /api/reservations/{id}/cancel` | Not implemented | Cancel reservation                                          |
 | `GET /api/availability`              | Implemented     | 15-min slots with conflict check; dummy slots 2025-08-25~31 |
@@ -25,7 +25,7 @@
 | Use calendar for date/time selection | Implemented     | Weekly calendar, future business hours only  |
 | Reservation list screen              | Implemented     | Responsive grid using dummy data, no filters |
 | Reservation confirmation screen      | Not implemented | Show details after create                    |
-| Reservation detail screen            | Not implemented | View single reservation                      |
+| Reservation detail screen            | Implemented     | View single reservation                      |
 | Cancellation flow                    | Not implemented | Cancel existing booking                      |
 | Reservation extension flow           | Not implemented | Extend an existing booking                   |
 | Availability search screen           | Implemented     | Weekly calendar in reservation form          |
