@@ -11,7 +11,7 @@ function makeRequest(search: string) {
 }
 
 describe('GET /api/availability', () => {
-  it('marks reserved slots as unavailable', async () => {
+  it('filters availability by tenant and resource', async () => {
     const repo = new InMemoryReservationRepository();
     await repo.create(
       {
@@ -28,10 +28,22 @@ describe('GET /api/availability', () => {
     );
 
     const res = await GET(makeRequest('?tenantId=t&resourceId=r&dateUTC=2025-08-24'));
-    expect(res.status).toBe(200);
     const json = await res.json();
     const slot = json.slots.find((s: { hhmm: string; available: boolean }) => s.hhmm === '1000');
-    expect(slot).toBeDefined();
     expect(slot?.available).toBe(false);
+
+    const otherTenant = await GET(makeRequest('?tenantId=other&resourceId=r&dateUTC=2025-08-24'));
+    const otherTenantJson = await otherTenant.json();
+    const otherTenantSlot = otherTenantJson.slots.find(
+      (s: { hhmm: string; available: boolean }) => s.hhmm === '1000',
+    );
+    expect(otherTenantSlot?.available).toBe(true);
+
+    const otherResource = await GET(makeRequest('?tenantId=t&resourceId=other&dateUTC=2025-08-24'));
+    const otherResourceJson = await otherResource.json();
+    const otherResourceSlot = otherResourceJson.slots.find(
+      (s: { hhmm: string; available: boolean }) => s.hhmm === '1000',
+    );
+    expect(otherResourceSlot?.available).toBe(true);
   });
 });

@@ -7,6 +7,8 @@ export type CreateReservationCommand = components['schemas']['CreateReservationR
 // group reservations by date.
 export interface Reservation {
   reservationId: string;
+  tenantId: string;
+  resourceId: string;
   amount: number;
   cancelFeePreview: number;
   startAtUTC: string;

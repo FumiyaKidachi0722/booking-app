@@ -10,6 +10,8 @@ import type {
 const reservations: Reservation[] = [
   {
     reservationId: 'dummy-1',
+    tenantId: 't1',
+    resourceId: 'res1',
     amount: 5000,
     cancelFeePreview: 500,
     startAtUTC: new Date().toISOString(),
@@ -17,6 +19,8 @@ const reservations: Reservation[] = [
   },
   {
     reservationId: 'dummy-2',
+    tenantId: 't1',
+    resourceId: 'res2',
     amount: 8000,
     cancelFeePreview: 0,
     startAtUTC: new Date(Date.now() + 86400000).toISOString(),
@@ -28,6 +32,8 @@ export class InMemoryReservationRepository implements ReservationRepository {
   async create(command: CreateReservationCommand, _idempotencyKey: string): Promise<Reservation> {
     const reservation: Reservation = {
       reservationId: randomUUID(),
+      tenantId: command.tenantId,
+      resourceId: command.resourceId,
       amount: 0,
       cancelFeePreview: 0,
       startAtUTC: command.startAtUTC,

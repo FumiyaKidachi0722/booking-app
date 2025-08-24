@@ -13,16 +13,14 @@ const querySchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const {
-      tenantId: _tenantId,
-      resourceId: _resourceId,
-      dateUTC,
-      unitMin,
-    } = querySchema.parse(Object.fromEntries(req.nextUrl.searchParams));
+    const { tenantId, resourceId, dateUTC, unitMin } = querySchema.parse(
+      Object.fromEntries(req.nextUrl.searchParams),
+    );
 
-    // InMemory implementation ignores tenant/resource and checks all reservations
     const repo = new InMemoryReservationRepository();
-    const reservations = await repo.list();
+    const reservations = (await repo.list()).filter(
+      (r) => r.tenantId === tenantId && r.resourceId === resourceId,
+    );
 
     const dayStart = new Date(`${dateUTC}T00:00:00Z`);
     const totalSlots = (24 * 60) / unitMin;
