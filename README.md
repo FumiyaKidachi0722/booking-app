@@ -8,6 +8,9 @@
 - **二重予約防止**：スロット離散化（デフォルト 15 分）× Firestore トランザクション
 - **Config-as-Data**：pricing / cancellation などを階層＋バージョン管理、公開版のみ適用
 - **スキーマ拡張**：業態固有データを JSON（`extra`）で安全に保持（Schema Registry+Zod）
+- **空き状況確認**：週次カレンダーで営業日・時間内の空きのみ直感的に選択  
+  2025-08-25〜08-31のダミー空き時間を事前設定
+- **予約対象選択**：テナントやリソースをダミーの一覧からクリックして選択し予約開始
 - **UI/UX**：shadcn/ui（Radix）でアクセシビリティと一貫性を担保
 
 ---
@@ -18,7 +21,9 @@
 
 src/
 app/                 # Next.js App Router
-reserve/page.tsx
+reserve/
+  page.tsx
+  create/page.tsx
 api/
 reservations/route.ts
 config/preview/route.ts
@@ -131,7 +136,8 @@ pnpm install # または npm/yarn
 ```bash
 pnpm dev
 # http://localhost:3000/ (ホーム)
-# http://localhost:3000/reserve (予約フォーム)
+# http://localhost:3000/reserve (予約対象選択 - ダミーデータ)
+# http://localhost:3000/reserve/create (予約フォーム)
 # http://localhost:3000/reservations (予約一覧)
 ```
 
@@ -209,7 +215,7 @@ GET /api/reservations
 - [ ] `GET /api/reservations/{id}` – 予約詳細
 - [ ] `POST /api/reservations/{id}/extend` – 予約延長
 - [ ] `POST /api/reservations/{id}/cancel` – 予約キャンセル
-- [ ] `GET /api/availability` – 空き状況検索
+- [x] `GET /api/availability` – 空き状況検索
 - [ ] `GET /api/config/preview` – 公開設定プレビュー
 - [ ] `POST /api/payments/webhook` – 決済イベント受信
 - [ ] `POST /api/auth/login` – ログイン
@@ -218,13 +224,13 @@ GET /api/reservations
 ### UI
 
 - [x] ホーム画面（予約フォーム・一覧への導線）
-- [x] 予約フォーム（カレンダー入力対応）
+- [x] 予約フォーム（週次カレンダーで空き時間選択）
 - [x] 予約一覧画面
 - [ ] 予約確認画面
 - [ ] 予約詳細画面
 - [ ] キャンセルフロー
 - [ ] 延長フロー
-- [ ] 空き検索画面
+- [x] 空き検索（週次カレンダー）
 - [ ] 設定プレビュー画面
 - [ ] ログイン画面
 
@@ -250,7 +256,7 @@ GET /api/reservations
 
 - Unit: UseCase（Port モック）
 - Integration: Firestore Emulator（Tx 競合/冪等）
-- E2E: Playwright（/reserve → 予約作成 → トースト）
+- E2E: Playwright（/reserve で対象選択 → 予約作成 → トースト）
 
 ---
 

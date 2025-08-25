@@ -4,11 +4,11 @@ import * as React from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface DateTimePickerProps {
   value: Date | undefined;
@@ -54,7 +54,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
             variant="outline"
             className={cn(
               'w-[240px] justify-start text-left font-normal',
-              !value && 'text-muted-foreground'
+              !value && 'text-muted-foreground',
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
@@ -69,4 +69,3 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
     </div>
   );
 }
-

@@ -15,6 +15,7 @@ export function PageHeader({ title, imageUrl }: PageHeaderProps) {
         backgroundImage: imageUrl ? `url(${imageUrl})` : undefined,
         height: PAGE_HEADER_HEIGHT,
         marginTop: -HEADER_HEIGHT,
+        paddingTop: HEADER_HEIGHT,
       }}
     >
       {title && <h1 className="text-3xl font-bold text-white drop-shadow">{title}</h1>}

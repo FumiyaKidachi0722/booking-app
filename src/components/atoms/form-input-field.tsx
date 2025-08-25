@@ -1,5 +1,6 @@
-import { Control, FieldPath } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import type { Control, FieldPath } from 'react-hook-form';
+
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
 interface FormInputFieldProps<T> {
@@ -8,9 +9,17 @@ interface FormInputFieldProps<T> {
   label: string;
   type?: React.HTMLInputTypeAttribute;
   min?: number;
+  disabled?: boolean;
 }
 
-export function FormInputField<T>({ control, name, label, type = 'text', min }: FormInputFieldProps<T>) {
+export function FormInputField<T>({
+  control,
+  name,
+  label,
+  type = 'text',
+  min,
+  disabled,
+}: FormInputFieldProps<T>) {
   return (
     <FormField
       control={control}
@@ -23,11 +32,10 @@ export function FormInputField<T>({ control, name, label, type = 'text', min }: 
               {...field}
               type={type}
               min={min}
+              disabled={disabled}
               required
               onChange={
-                type === 'number'
-                  ? (e) => field.onChange(e.target.valueAsNumber)
-                  : field.onChange
+                type === 'number' ? (e) => field.onChange(e.target.valueAsNumber) : field.onChange
               }
             />
           </FormControl>
