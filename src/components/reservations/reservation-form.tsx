@@ -128,7 +128,13 @@ export function ReservationForm({
                 form.setValue('startAtUTC', d.toISOString(), { shouldValidate: true })
               }
             />
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit(onSubmit)(e);
+              }}
+              className="space-y-4"
+            >
               {textFields.map((f) => (
                 <FormInputField
                   key={f.name}
